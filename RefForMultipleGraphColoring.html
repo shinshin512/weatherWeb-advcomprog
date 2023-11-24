@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Population Bar Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Country Population Bar Chart (no China and India)</h1>
+    <form id="populationForm">
+        <label for="numberOfCountries">Enter the number of countries (n):</label>
+        <input type="number" id="numberOfCountries" required>
+        <button type="button" onclick="generateChart()">Generate Chart</button>
+    </form>
+    <canvas id="barChart" width="600" height="400"></canvas>
+    <script>
+async function generateChart() {
+//check if chart exist or not, if exist it will be destroyed
+  let chartStatus = Chart.getChart("barChart"); // <canvas> id
+  if (chartStatus != undefined) {
+    chartStatus.destroy();
+  }
+//get input number from html
+  const oldNumberOfCountries = document.getElementById('numberOfCountries');
+  const numberOfCountries = oldNumberOfCountries.value;
+  console.log("This is input num"+numberOfCountries);
+
+//fetch data
+  const response = await fetch("https://restcountries.com/v3.1/all");
+  const allCountriesData = await response.json();
+  console.log(allCountriesData);
+
+  var countriesData = allCountriesData;
+  countriesData.length = numberOfCountries;
+  console.log("this is countriesData" + countriesData);
+// Filter out China and india
+  var countriesData = countriesData.filter(country => country.name.common !== "China");
+  var countriesData = countriesData.filter(country => country.name.common !== "India");
+  
+  const name = countriesData.map(tp => tp.name.common);
+  console.log(name);
+  
+  const population = countriesData.map(tp => tp.population);
+  console.log(population);
+
+  var ul= document.getElementById('countriesList');
+//create random color for chart
+  const colorList = [];
+  const randomNum = () => Math.floor(Math.random() * (235 - 52 + 1) + 52);
+  const randomRGB = () => `rgb(${randomNum()}, ${randomNum()}, ${randomNum()})`;
+  console.log(randomRGB());
+  var color = randomRGB();
+  colorList.push(color);
+  for (let i = 0; i < numberOfCountries; i++) {
+    var color = randomRGB();
+    colorList.push(color);
+  }
+  console.log(colorList);
+//create chart
+  const ctx = document.getElementById('barChart');
+  const barChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: name,
+      datasets: [{
+        label: 'Population',
+          data: population,
+          backgroundColor: colorList,
+          borderColor: colorList,
+          borderWidth: 1
+      }]
+    },
+    options: {
+      animations: {
+        tension: {
+          duration: 1000,
+          easing: 'easeInOutElastic',
+          from: 1,
+          to: 0,
+          loop: true
+        }
+      },
+      scales: {
+        y: {
+        beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+    </script>
+</body>
+</html>
