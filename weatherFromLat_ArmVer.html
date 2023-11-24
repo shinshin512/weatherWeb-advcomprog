@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+    <header>
+        <title>Fetch Example</title>
+    </header>
+    <body>
+        <h1>Weather App</h1>
+        <p id="first-paragraph">Enter your desired latitude and longitude.</p>
+        <p id="second-paragraph">try 105.5 & 13.7 | 64 & 98 | 69 & 69!</p>
+        <label for="userLatitudeInput">Latitude</label>
+        <input type="Latitudetext" id="userLatitudeInput" placeholder="Type your name here">
+        <label for="userLongitudeInput">Latitude</label>
+        <input type="Longitudetext" id="userLongitudeInput" placeholder="Type your name here">
+        <button id="CheckLocationButton" onclick="checkLocationButtonClick()">OK</button>
+        <p id="output-paragraph"></p>
+        <div>
+            <canvas id="WeatherChart"></canvas>
+        </div>
+        <ul id="WeatherList"></ul>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            //ข้างบนคือ import library ให้ใช้กราฟได้
+            async function logWeather(url) {
+                
+                //const response = await fetch("http://www.7timer.info/bin/api.pl?lon=100.5352&lat=13.7401&product=civil&output=json");
+                const response = await fetch(url);
+                const weatherData = await response.json();
+                //console.log(weatherData);
+                //console.log(weatherData.product);
+                const dataSeries = weatherData.dataseries;
+                var ul = document.getElementById("WeatherList");
+                
+                //สร้าง list ที่จะเป็น data ในกราฟ 2 อัน คือชื่อข้อมูลกับตัวเลข
+                
+                dataSeries.forEach(tp => {
+                    // console.log(weatherData.init+'+'+tp.timepoint+': '+tp.temp2m);
+                    var li = document.createElement('li');
+                    li.textContent = 'At Timepoint '+tp.timepoint+':00 Current Temperature is '+tp.temp2m+' & Current Humidity is '+tp.rh2m;
+                    ul.appendChild(li);
+                });
+
+
+                //สร้าง list ที่จะเป็น data ในกราฟ 2 อัน คือชื่อข้อมูลกับตัวเลข
+                //กำหนดให้ทุกตัวเรียกว่า tp แล้วเอา tp.temp2m ใส่ใน map
+                //map มันคือ list comprehension ใน python
+                const rh2m = dataSeries.map(tp => parseInt(tp.rh2m.slice(0,-1)));
+                const temp2m = dataSeries.map(tp => tp.temp2m);
+                //list ที่เป็นชื่อข้อมูล
+                //const labels = dataSeries.map(tp => weatherData.init+'+'+tp.timepoint);
+                const labels = dataSeries.map(tp => tp.timepoint+':00');
+                //เอากราฟที่ชื่อ ctx ไปแปะใน canvas ที่มี id temperatureChart ข้างบน
+                const ctx = document.getElementById('WeatherChart');
+
+
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                    labels: labels,
+                    //อยากทำสองเส้น ให้ใส่เป็น dataset อีกอันในลิสข้างล่าง
+                    datasets: [{
+                        label: 'Humidity',
+                        data: rh2m,
+                        borderWidth: 1
+                    },{
+                        label: 'Temperature',
+                        data: temp2m,
+                        borderwidth: 2
+                    }]
+                    },
+                    options: {
+                    scales: {
+                        y: {
+                        beginAtZero: true
+                        }
+                    }
+                    }
+                });
+                console.log(temp2m);
+                console.log(labels);
+            }
+            function checkLocationButtonClick() {
+                var latitudeElement = document.getElementById("userLatitudeInput");
+                var longitudeElement = document.getElementById("userLongitudeInput");
+                var inputLatitudeValue = latitudeElement.value;
+                var inputLongtitudeValue = longitudeElement.value;
+                console.log(inputLatitudeValue, inputLongtitudeValue);
+                console.log("http://www.7timer.info/bin/api.pl?lon="+inputLatitudeValue+":&lat="+inputLongtitudeValue+"&product=civil&output=json");
+                //OK
+                urllink = "http://www.7timer.info/bin/api.pl?lon="+inputLatitudeValue+":&lat="+inputLongtitudeValue+"&product=civil&output=json";
+                //OK
+                logWeather(urllink);
+
+            }
+            // const latitude = document.getElementById("userLatitudeInput");
+            // const longitude = document.getElementById("userLongitudeInput");
+            // const url = "http://www.7timer.info/bin/api.pl?lon=100.5352&lat=13.7401&product=civil&output=json";
+            
+            //logWeather();
+        </script>
+    </body>
+</html>
